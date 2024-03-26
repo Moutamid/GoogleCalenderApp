@@ -19,7 +19,7 @@
         android:fontFamily="@font/googlesansmed"
         android:orientation="horizontal"
         android:padding="9dp"
-        android:textColor="@android:color/white"
+        android:textColor="@android:color/holo_blue_dark"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

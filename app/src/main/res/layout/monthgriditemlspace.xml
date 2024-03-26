@@ -18,6 +18,7 @@
         android:fontFamily="@font/latoregular"
         android:textSize="12sp"
         android:gravity="center"
+
         android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

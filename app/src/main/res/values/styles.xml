@@ -36,4 +36,8 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="BottomNavigationTextStyle">
+        <item name="android:textSize">14sp</item> <!-- Change the text size as needed -->
+    </style>
+
 </resources>

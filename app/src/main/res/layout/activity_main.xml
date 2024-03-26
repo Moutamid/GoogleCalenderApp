@@ -7,18 +7,72 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:openDrawer="end">
+<RelativeLayout
+    android:id="@+id/topbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentTop="true"
+
+    >
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/navigation_view"
+        android:layout_width="260dp"
+        android:layout_height="56dp"
+        android:layout_below="@+id/title_bar"
+        android:layout_centerHorizontal="true"
+        app:itemBackground="@drawable/icon_selector"
+        app:itemTextAppearanceActive="@style/BottomNavigationTextStyle"
+        app:itemTextAppearanceInactive="@style/BottomNavigationTextStyle"
+        app:menu="@menu/nav_item" />
+
+    <RelativeLayout
+        android:id="@+id/title_bar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="40dp"
+        android:background="#4472C4">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="24dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="20dp"
+            android:onClick="BackPress"
+            android:src="@drawable/back_arrow" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="22dp"
+            android:fontFamily="@font/productsans_bold"
+            android:gravity="center"
+            android:paddingTop="4dp"
+            android:text="Create"
+            android:textColor="#fff"
+            android:textSize="18dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
         android:background="@android:color/white"
-        android:layout_below="@+id/navigation_view"
+        android:layout_marginTop="6dp"
         android:layout_height="match_parent"
+        android:layout_below="@+id/topbar"
         tools:context=".MainActivity">
 
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:expanded="false"
@@ -33,8 +87,6 @@
                 android:layout_height="wrap_content"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed|snap|enterAlways"
                 app:statusBarScrim="?attr/colorPrimaryDark">
-
-                <!--large view -->
                 <com.example.GoogleCalendar.GooglecalenderView
                     android:id="@+id/calander"
                     android:layout_width="match_parent"
@@ -49,6 +101,7 @@
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
+                    android:visibility="gone"
                     android:layout_height="wrap_content"
                     app:title="fkdl"
                     app:contentInsetLeft="0dp"
@@ -62,6 +115,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="?attr/actionBarSize"
                         android:clickable="true"
+                        android:visibility="gone"
                         android:focusable="true">
 
                         <View
@@ -164,6 +218,7 @@
                     app:eventTextSize="12sp"
                     app:allDayEventHeight="20dp"
                     app:hourHeight="30dp"
+                    android:layout_marginBottom="50dp"
                     app:showNowLine="true"
                     app:nowLineColor="#000"
                     app:eventCornerRadius="3dp"
@@ -173,6 +228,7 @@
                     app:headerRowPadding="9dp"
                     app:columnGap="0dp"
                     app:firstDayOfWeek="sunday"
+
                     app:noOfVisibleDays="1"
                     app:headerRowBackgroundColor="@android:color/white"
                     app:hourSeparatorHeight="1.3dp"
@@ -298,17 +354,41 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:layout_width="250dp"
-        android:layout_height="56dp"
-        android:layout_alignParentTop="true"
-        android:id="@+id/navigation_view"
-        android:layout_centerHorizontal="true"
 
-        app:menu="@menu/nav_item"
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp">
 
-        app:itemBackground="@drawable/icon_selector" />
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/current_date"
+            android:rotation="180"
+            android:src="@drawable/arrow" />
 
+        <TextView
+            android:id="@+id/current_date"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/latoregular"
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="Thursday 25"
+            android:textColor="#000"
+            android:textSize="16dp" />
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/current_date"
+            android:src="@drawable/arrow" />
+
+    </RelativeLayout>
 
 </RelativeLayout>
 

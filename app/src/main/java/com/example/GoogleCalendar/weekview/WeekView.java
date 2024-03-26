@@ -34,11 +34,13 @@ import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.OverScroller;
+import android.widget.Toast;
 
 import com.example.GoogleCalendar.MainActivity;
 import com.example.GoogleCalendar.R;
 
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -124,20 +126,22 @@ public class WeekView extends View {
     private int mFirstDayOfWeek = Calendar.MONDAY;
     private int mTextSize = 12;
     private int mHeaderColumnPadding = 10;
-    private int mHeaderColumnTextColor = Color.BLACK;
+    private int mHeaderColumnTextColor = Color.BLUE;
     private int mNumberOfVisibleDays = 1;
     private int mHeaderRowPadding = 10;
-    private int mHeaderRowBackgroundColor = Color.WHITE;
+    private int mHeaderRowBackgroundColor = Color.BLUE;
     private int mDayBackgroundColor = Color.rgb(245, 245, 245);
     private int mPastBackgroundColor = Color.rgb(227, 227, 227);
     private int mFutureBackgroundColor = Color.rgb(245, 245, 245);
     private int mPastWeekendBackgroundColor = 0;
     private int mFutureWeekendBackgroundColor = 0;
     private int mNowLineColor = Color.rgb(102, 102, 102);
-    private int mNowLineThickness = 5;
+    private int mNowLineThickness = 2;
     private int mHourSeparatorColor = Color.rgb(230, 230, 230);
-    private int mTodayBackgroundColor = Color.rgb(239, 247, 254);
+    private int mTodayBackgroundColor = Color.rgb(19, 65, 105);
     private int mHourSeparatorHeight = 2;
+
+    //current datecolor
     private int mTodayHeaderTextColor = Color.rgb(39, 137, 228);
     private int mEventTextSize = 12;
     private int mEventTextColor = Color.BLACK;
@@ -171,7 +175,6 @@ public class WeekView extends View {
 
         @Override
         public boolean onDown(MotionEvent e) {
-
             weekx = mCurrentOrigin.x;
             goToNearestOrigin();
             return true;
@@ -179,17 +182,26 @@ public class WeekView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            // Check if view is zoomed.
+            DayOfWeek dayOfWeek = DayOfWeek.of(MainActivity.lastdate.getDayOfWeek());
+            int dayOfMonth = MainActivity.lastdate.getDayOfMonth();
 
-            if (mIsZooming)
+            // Check if view is zoomed.
+if (mIsZooming)
                 return true;
             switch (mCurrentScrollDirection) {
                 case NONE: {
+
                     // Allow scrolling only in one direction.
                     if (Math.abs(distanceX) > Math.abs(distanceY)) {
                         if (distanceX > 0) {
+                            Log.d("state", "1");
+                            MainActivity.current_date.setText(dayOfWeek+"  "+ dayOfMonth);
+
                             mCurrentScrollDirection = Direction.LEFT;
                         } else {
+                            Log.d("state", "2");
+                            MainActivity.current_date.setText(dayOfWeek+"  "+ dayOfMonth);
+
                             mCurrentScrollDirection = Direction.RIGHT;
                         }
                     } else {
@@ -198,6 +210,8 @@ public class WeekView extends View {
                     break;
                 }
                 case LEFT: {
+                    Log.d("state", "3");
+
                     // Change direction if there was enough change.
                     if (Math.abs(distanceX) > Math.abs(distanceY) && (distanceX < -mScaledTouchSlop)) {
                         mCurrentScrollDirection = Direction.RIGHT;
@@ -205,6 +219,9 @@ public class WeekView extends View {
                     break;
                 }
                 case RIGHT: {
+                    Log.d("state", "4");
+
+
                     // Change direction if there was enough change.
                     if (Math.abs(distanceX) > Math.abs(distanceY) && (distanceX > mScaledTouchSlop)) {
                         mCurrentScrollDirection = Direction.LEFT;
@@ -394,7 +411,7 @@ public class WeekView extends View {
             mNowLineColor = a.getColor(R.styleable.WeekView_nowLineColor, mNowLineColor);
             mNowLineThickness = a.getDimensionPixelSize(R.styleable.WeekView_nowLineThickness, mNowLineThickness);
             mHourSeparatorColor = a.getColor(R.styleable.WeekView_hourSeparatorColor, mHourSeparatorColor);
-//            mTodayBackgroundColor = a.getColor(R.styleable.WeekView_todayBackgroundColor, mTodayBackgroundColor);
+            mTodayBackgroundColor = a.getColor(R.styleable.WeekView_todayBackgroundColor, mTodayBackgroundColor);
             mHourSeparatorHeight = a.getDimensionPixelSize(R.styleable.WeekView_hourSeparatorHeight, mHourSeparatorHeight);
             mTodayHeaderTextColor = a.getColor(R.styleable.WeekView_todayHeaderTextColor, mTodayHeaderTextColor);
             mEventTextSize = a.getDimensionPixelSize(R.styleable.WeekView_eventTextSize, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, mEventTextSize, context.getResources().getDisplayMetrics()));
@@ -486,10 +503,10 @@ public class WeekView extends View {
         mHeaderTextHeight = rect.height();
 
         jheaderEventTextpaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        jheaderEventTextpaint.setColor(Color.WHITE);
+        jheaderEventTextpaint.setColor(Color.BLUE);
         jheaderEventTextpaint.setTextAlign(Paint.Align.LEFT);
         jheaderEventTextpaint.setTextSize(mTextSize);
-        jheaderEventTextpaint.getTextBounds("a", 0, "a".length(), rect);
+//        jheaderEventTextpaint.getTextBounds("a", 0, "a".length(), rect);
         jheaderEventheight = rect.centerY();
 
         jtodayHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -498,7 +515,7 @@ public class WeekView extends View {
         jtodayHeaderTextPaint.setTextSize(mTextSize * 1.6f);
 
         jHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        jHeaderTextPaint.setColor(Color.DKGRAY);
+        jHeaderTextPaint.setColor(Color.WHITE);
         jHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
         jHeaderTextPaint.setTextSize(mTextSize * 1.6f);
         jHeaderTextPaint.getTextBounds("00", 0, "00".length(), rect);
@@ -549,7 +566,7 @@ public class WeekView extends View {
         // Prepare event background color.
         mEventBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-        mEventBackgroundPaint.setColor(Color.rgb(174, 208, 238));
+        mEventBackgroundPaint.setColor(Color.rgb(255, 255, 255));
 
         // Prepare header column background color.
         mHeaderColumnBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -982,10 +999,7 @@ public class WeekView extends View {
                     canvas.drawRoundRect(x - size, y - size, x + size, y + size, size, size, mTodayBackgroundPaint);
                 canvas.drawText(dayLabel, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding / 3.0f, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
                 canvas.drawText(dayLabel1, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding * 1.76f + jHeaderTextHeight, sameDay ? jtodayHeaderTextPaint : jHeaderTextPaint);
-
                 drawAllDayEvents(day, startPixel, canvas, dayNumber, false);
-
-
             }
 
             if (mShowNowLine && sameDay) {
@@ -1001,19 +1015,13 @@ public class WeekView extends View {
                         canvasclipRect(canvas, 0, mHeaderHeight + mHeaderRowPadding * 3 - 70, getWidth(), getHeight(), Region.Op.REPLACE);
                     canvas.drawRoundRect(startat - per, startY + beforeNow - per, startat + per, startY + beforeNow + per, per, per, jNowbackPaint);
                     canvas.drawLine(startat, startY + beforeNow, startPixel + wid, startY + beforeNow, mNowLinePaint);
-
                     canvasclipRect(canvas, mHeaderColumnWidth, 0, getWidth(), getHeight(), Region.Op.REPLACE);
-
                 } else {
-
                     canvasclipRect(canvas, 0, mHeaderHeight + mHeaderRowPadding * 3 - 70, getWidth(), getHeight(), Region.Op.REPLACE);
-
                     canvas.drawRoundRect(startPixel - 20, startY + beforeNow - 20, startPixel + 20, startY + beforeNow + 20, 20, 20, jNowbackPaint);
                     canvas.drawLine(startPixel, startY + beforeNow, startPixel + wid - mHeaderColumnWidth, startY + beforeNow, mNowLinePaint);
                     canvasclipRect(canvas, 0, 0, getWidth(), getHeight(), Region.Op.REPLACE);
-
                 }
-
             }
             if (mNumberOfVisibleDays == 1)
                 drawTimeColumnAndAxes1day(canvas, startPixel - mHeaderColumnWidth);
@@ -1107,8 +1115,8 @@ public class WeekView extends View {
                             bottom > mHeaderHeight + mHeaderRowPadding * 3 + mTimeTextHeight / 2 + mHeaderMarginBottom
                     ) {
                         mEventRects.get(i).rectF = new RectF(left, top, right, bottom);
-                        mEventBackgroundPaint.setColor(mEventRects.get(i).event.getColor() == 0 ? mDefaultEventColor : mEventRects.get(i).event.getColor());
-                        canvas.drawRoundRect(mEventRects.get(i).rectF, mEventCornerRadius, mEventCornerRadius, mEventBackgroundPaint);
+//                        mEventBackgroundPaint.setColor(mEventRects.get(i).event.getColor() == 0 ? mDefaultEventColor : mEventRects.get(i).event.getColor());
+//                        canvas.drawRoundRect(mEventRects.get(i).rectF, mEventCornerRadius, mEventCornerRadius, mEventBackgroundPaint);
                         drawEventTitle(mEventRects.get(i).event, mEventRects.get(i).rectF, canvas, top, left);
                     } else
                         mEventRects.get(i).rectF = null;
@@ -2516,13 +2524,6 @@ public class WeekView extends View {
         void onEventClick(WeekViewEvent event, RectF eventRect);
     }
 
-
-    /////////////////////////////////////////////////////////////////
-    //
-    //      Interfaces.
-    //
-    /////////////////////////////////////////////////////////////////
-
     public interface EventLongPressListener {
         /**
          * @param event:     event clicked.
@@ -2532,41 +2533,19 @@ public class WeekView extends View {
     }
 
     public interface EmptyViewClickListener {
-        /**
-         * Triggered when the users clicks on a empty space of the calendar.
-         *
-         * @param time: {@link Calendar} object set with the date and time of the clicked position on the view.
-         */
-        void onEmptyViewClicked(Calendar time);
+             void onEmptyViewClicked(Calendar time);
     }
 
     public interface EmptyViewLongPressListener {
-        /**
-         * @param time: {@link Calendar} object set with the date and time of the long pressed position on the view.
-         */
+
         void onEmptyViewLongPress(Calendar time);
     }
 
     public interface ScrollListener {
-        /**
-         * Called when the first visible day has changed.
-         * <p>
-         * (this will also be called during the first draw of the weekview)
-         *
-         * @param newFirstVisibleDay The new first visible day
-         * @param oldFirstVisibleDay The old first visible day (is null on the first call).
-         */
+
         void onFirstVisibleDayChanged(Calendar newFirstVisibleDay, Calendar oldFirstVisibleDay);
     }
 
-    /**
-     * A class to hold reference to the events and their visual representation. An EventRect is
-     * actually the rectangle that is drawn on the calendar for a given event. There may be more
-     * than one rectangle for a single event (an event that expands more than one day). In that
-     * case two instances of the EventRect will be used for a single event. The given event will be
-     * stored in "originalEvent". But the event that corresponds to rectangle the rectangle
-     * instance will be stored in "event".
-     */
     private class EventRect {
         public WeekViewEvent event;
         public WeekViewEvent originalEvent;
@@ -2577,18 +2556,7 @@ public class WeekView extends View {
         public float bottom;
         public int noofevent;
 
-        /**
-         * Create a new instance of event rect. An EventRect is actually the rectangle that is drawn
-         * on the calendar for a given event. There may be more than one rectangle for a single
-         * event (an event that expands more than one day). In that case two instances of the
-         * EventRect will be used for a single event. The given event will be stored in
-         * "originalEvent". But the event that corresponds to rectangle the rectangle instance will
-         * be stored in "event".
-         *
-         * @param event         Represents the event which this instance of rectangle represents.
-         * @param originalEvent The original event that was passed by the user.
-         * @param rectF         The rectangle.
-         */
+
         public EventRect(WeekViewEvent event, WeekViewEvent originalEvent, RectF rectF) {
             this.event = event;
             this.rectF = rectF;

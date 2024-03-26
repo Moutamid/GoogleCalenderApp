@@ -6,7 +6,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -23,20 +22,33 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.ViewCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 
 import com.example.GoogleCalendar.weekview.DateTimeInterpreter;
 import com.example.GoogleCalendar.weekview.MonthLoader;
@@ -46,7 +58,6 @@ import com.gjiazhe.scrollparallaximageview.ScrollParallaxImageView;
 import com.gjiazhe.scrollparallaximageview.parallaxstyle.VerticalMovingStyle;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationView;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersAdapter;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersDecoration;
 
@@ -58,6 +69,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -65,22 +77,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.core.view.ViewCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
 
 public class MainActivity extends AppCompatActivity
         implements MyRecyclerView.AppBarTracking, WeekView.EventClickListener, MonthLoader.MonthChangeListener, WeekView.EventLongPressListener, WeekView.EmptyViewLongPressListener, WeekView.ScrollListener {
@@ -105,6 +101,7 @@ public class MainActivity extends AppCompatActivity
     private AppBarLayout mAppBar;
     private boolean mIsExpanded = false;
     private View redlay;
+    public  static  TextView current_date;
     private ImageView mArrowImageView;
     private TextView monthname;
     private Toolbar toolbar;
@@ -276,7 +273,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                Log.e("itemselect", "itemselect");
+                Log.e("itemselect", "itemselect" + MainActivity.lastdate);
                 if (item.getItemId() == R.id.Day) {
                     weekviewcontainer.setVisibility(View.VISIBLE);
                     monthviewpager.setVisibility(View.GONE);
@@ -392,6 +389,7 @@ public class MainActivity extends AppCompatActivity
                     String year = monthModel.getYear() == localDate.getYear() ? "" : monthModel.getYear() + "";
                     monthname.setText(monthModel.getMonthnamestr() + " " + year);
                     MainActivity.lastdate = new LocalDate(monthModel.getYear(), monthModel.getMonth(), 1);
+                    Log.d("dat", MainActivity.lastdate + "   d1ate");
                     // EventBus.getDefault().post(new MessageEvent(new LocalDate(monthModel.getYear(),monthModel.getMonth(),1)));
                     // if (monthChangeListner!=null)monthChangeListner.onmonthChange(myPagerAdapter.monthModels.get(position));
                 } else {
@@ -545,7 +543,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-
+                Log.d("dssddssddat", "   date1");
                 if (mAppBarOffset != 0 && isappbarclosed && newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
                     calendarView.setCurrentmonth(dateAdapter.geteventallList().get(expandedfirst).getLocalDate());
                     calendarView.adjustheight();
@@ -593,6 +591,7 @@ public class MainActivity extends AppCompatActivity
                     }
 
                 }
+                Log.d("dssddssddat", "   date2");
 
                 super.onScrolled(recyclerView, dx, dy);
             }
@@ -613,8 +612,11 @@ public class MainActivity extends AppCompatActivity
         mAppBar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-
-
+                Log.d("dssddssddat", "   date3");
+                current_date=findViewById(R.id.current_date);
+                DayOfWeek dayOfWeek = DayOfWeek.of(MainActivity.lastdate.getDayOfWeek());
+                int dayOfMonth = MainActivity.lastdate.getDayOfMonth();
+                MainActivity.current_date.setText(dayOfWeek+"  "+ dayOfMonth);
                 if (mAppBarOffset != verticalOffset) {
                     mAppBarOffset = verticalOffset;
                     mAppBarMaxOffset = -mAppBar.getTotalScrollRange();
@@ -1272,7 +1274,7 @@ public class MainActivity extends AppCompatActivity
             mAppBar.setExpanded(mIsExpanded, true);
             return;
         }
-        eventnametextview.setText(event.getName());
+        eventnametextview.setText("hhhh"+event.getName());
         if (event.isAllDay() == false) {
             LocalDateTime start = new LocalDateTime(event.getStartTime().getTimeInMillis(), DateTimeZone.forTimeZone(event.getStartTime().getTimeZone()));
             LocalDateTime end = new LocalDateTime(event.getEndTime().getTimeInMillis(), DateTimeZone.forTimeZone(event.getEndTime().getTimeZone()));
@@ -1629,8 +1631,6 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public long getHeaderId(int position) {
-
-
             if (eventalllist.get(position).getType() == 1) return position;
             else if (eventalllist.get(position).getType() == 3) return position;
             else if (eventalllist.get(position).getType() == 100) return position;
@@ -1644,6 +1644,7 @@ public class MainActivity extends AppCompatActivity
         @Override
         public RecyclerView.ViewHolder onCreateHeaderViewHolder(ViewGroup parent, int position) {
             int viewtype = getHeaderItemViewType(position);
+            Toast.makeText(MainActivity.this, "data"+ viewtype, Toast.LENGTH_SHORT).show();
             if (viewtype == 2) {
                 View view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.todayheader, parent, false);
@@ -1674,8 +1675,8 @@ public class MainActivity extends AppCompatActivity
             if (viewtype == 0 || viewtype == 2 || viewtype == 1000) {
                 TextView vartextView = holder.itemView.findViewById(R.id.textView9);
                 TextView datetextView = holder.itemView.findViewById(R.id.textView10);
-                vartextView.setText(var[eventalllist.get(position).getLocalDate().getDayOfWeek() - 1]+", ");
-                datetextView.setText(eventalllist.get(position).getLocalDate().getDayOfMonth() + "");
+//                vartextView.setText("tetx"+var[eventalllist.get(position).getLocalDate().getDayOfWeek() - 1]+", ");
+//                datetextView.setText(eventalllist.get(position).getLocalDate().getDayOfMonth() + "");
                 holder.itemView.setTag(position);
             } else {
 
@@ -1764,7 +1765,7 @@ public class MainActivity extends AppCompatActivity
                         redlay.setTranslationZ(0);
 
                         GradientDrawable shape = new GradientDrawable();
-                        shape.setCornerRadius(getResources().getDimensionPixelSize(R.dimen.fourdp));
+                        shape.setCornerRadius(getResources().getDimensionPixelSize(R.dimen.onedp));
                         mycolor = eventalllist.get(getAdapterPosition()).getColor();
                         shape.setColor(mycolor);
                         redlay.setBackground(shape);

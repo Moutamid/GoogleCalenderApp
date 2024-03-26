@@ -173,7 +173,7 @@ public class JCalendarMonthTopView extends View {
 
         jeventRectPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         jeventRectPaint.setStyle(Paint.Style.FILL);
-        jeventRectPaint.setColor(Color.parseColor("#009688"));
+        jeventRectPaint.setColor(Color.parseColor("#ffffff"));
 
         jselectrectpaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         jselectrectpaint.setStyle(Paint.Style.FILL);

@@ -67,7 +67,7 @@ public class JCalendarMonthTopView extends View {
 
 
             datemargintop = a.getDimensionPixelSize(R.styleable.JCalendarMonthView_datemargintop, 25);
-            linecolor = a.getColor(R.styleable.JCalendarMonthView_linecolor, Color.GRAY);
+            linecolor = a.getColor(R.styleable.JCalendarMonthView_linecolor, Color.WHITE);
             linewidth = a.getDimensionPixelSize(R.styleable.JCalendarMonthView_linewidth, 2);
 
 

@@ -78,7 +78,7 @@ public class Utility {
             if (true) {
                 Log.e(cursor.getString(1), cursor.getInt(7) + "");
                 LocalDate localDate = getDate(Long.parseLong(cursor.getString(3)));
-
+Log.d("dateeeeeee", localDate.toString());
                 if (!localDateHashMap.containsKey(localDate)) {
                     EventInfo eventInfo = new EventInfo();
                     eventInfo.id = cursor.getInt(0);

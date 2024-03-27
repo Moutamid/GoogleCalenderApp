@@ -6,6 +6,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -70,6 +71,8 @@ import org.joda.time.LocalDateTime;
 
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -85,19 +88,18 @@ public class MainActivity extends AppCompatActivity
     public static int topspace = 0;
     long lasttime;
     int mycolor;
+
     MyRecyclerView mNestedView;
     View weekviewcontainer;
     WeekView mWeekView;
     private String daysList[] = {"", "Monday", "Tuesday", "Wednesday",
             "Thursday", "Friday", "Saturday", "Sunday"};
-    private View myshadow;
     private ViewPager monthviewpager;
-    private HashMap<LocalDate, EventInfo> alleventlist;
+    private static HashMap<LocalDate, EventInfo> alleventlist;
     private HashMap<LocalDate, EventInfo> montheventlist;
     private int mAppBarOffset = 0;
     private boolean mAppBarIdle = true;
     private int mAppBarMaxOffset = 0;
-    private View shadow;
     private AppBarLayout mAppBar;
     private boolean mIsExpanded = false;
     private View redlay;
@@ -121,7 +123,10 @@ public class MainActivity extends AppCompatActivity
     private HashMap<LocalDate, Integer> dupindextrack;
     private String[] var = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",};
 
-
+    public static TextView calender_date;
+    private static List<EventInfo> eventList;
+    private static RecyclerView recyclerView;
+    private static EventAdapter eventAdapter;
 
 
     private static void setRootView(Activity activity) {
@@ -210,7 +215,6 @@ public class MainActivity extends AppCompatActivity
                     shape.setColor(mycolor);
                     redlay.setBackground(shape);
                     redlay.setTranslationZ(0);
-                    shadow.setVisibility(View.GONE);
                 }
             }
         });
@@ -250,7 +254,12 @@ public class MainActivity extends AppCompatActivity
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        current_date = findViewById(R.id.current_date);
+        calender_date = findViewById(R.id.calender_date);
+        recyclerView = findViewById(R.id.recyclerView);
+
         mWeekView = (WeekView) findViewById(R.id.weekView);
+
         weekviewcontainer = findViewById(R.id.weekViewcontainer);
         BottomNavigationView navigationView = findViewById(R.id.navigation_view);
         Menu m = navigationView.getMenu();
@@ -351,7 +360,6 @@ public class MainActivity extends AppCompatActivity
         redlay = findViewById(R.id.redlay);
         redlay.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
          | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        shadow = findViewById(R.id.shadow);
         closebtn = findViewById(R.id.closebtn);
         closebtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -453,6 +461,27 @@ public class MainActivity extends AppCompatActivity
             LocalDate mintime = new LocalDate().minusYears(5);
             LocalDate maxtime = new LocalDate().plusYears(5);
             alleventlist = Utility.readCalendarEvent(this, mintime, maxtime);
+            eventList = new ArrayList<>();
+            // Populate event list from alleventlist
+            HashMap<LocalDate, EventInfo> alleventlist = Utility.readCalendarEvent(this, mintime, maxtime);
+            for (Map.Entry<LocalDate, EventInfo> entry : alleventlist.entrySet()) {
+                EventInfo eventInfo = entry.getValue();
+                Instant instant = Instant.ofEpochMilli(eventInfo.starttime);
+                java.time.LocalDate date = instant.atZone(ZoneId.systemDefault()).toLocalDate();
+
+                Log.d("dataaaa", date.toString() + "  " + MainActivity.lastdate);
+                if (date.toString().equals(MainActivity.lastdate)) {
+                    Log.d("dataaaa", eventInfo.title+ "  " + MainActivity.lastdate);
+                    eventList.add(eventInfo);
+                }
+            }
+
+
+            recyclerView = findViewById(R.id.recyclerView);
+            recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
+            eventAdapter = new EventAdapter(MainActivity.this, eventList);
+            recyclerView.setAdapter(eventAdapter);
+
             montheventlist = new HashMap<>();
 
             for (LocalDate localDate : alleventlist.keySet()) {
@@ -613,10 +642,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
                 Log.d("dssddssddat", "   date3");
-                current_date=findViewById(R.id.current_date);
                 DayOfWeek dayOfWeek = DayOfWeek.of(MainActivity.lastdate.getDayOfWeek());
                 int dayOfMonth = MainActivity.lastdate.getDayOfMonth();
-                MainActivity.current_date.setText(dayOfWeek+"  "+ dayOfMonth);
                 if (mAppBarOffset != verticalOffset) {
                     mAppBarOffset = verticalOffset;
                     mAppBarMaxOffset = -mAppBar.getTotalScrollRange();
@@ -628,11 +655,6 @@ public class MainActivity extends AppCompatActivity
                         mAppBar.setElevation(20 - (20 * Math.abs(progress)));
 
 
-                    }
-                    if (Math.abs(progress) > 0.45) {
-                        ViewGroup.LayoutParams params = myshadow.getLayoutParams();
-                        params.height = (int) (getResources().getDimensionPixelSize(R.dimen.fourdp) * Math.abs(progress));
-                        myshadow.setLayoutParams(params);
                     }
 
 
@@ -686,10 +708,8 @@ public class MainActivity extends AppCompatActivity
                 });
 
         /////////////////weekview implemention/////
-        myshadow = findViewById(R.id.myshadow);
 
 
-        mWeekView.setshadow(myshadow);
         mWeekView.setfont(ResourcesCompat.getFont(this, R.font.googlesans_regular), 0);
         mWeekView.setfont(ResourcesCompat.getFont(this, R.font.googlesansmed), 1);
 
@@ -1233,7 +1253,7 @@ public class MainActivity extends AppCompatActivity
         mWeekView.setDateTimeInterpreter(new DateTimeInterpreter() {
             @Override
             public String interpretday(Calendar date) {
-                SimpleDateFormat weekdayNameFormat = new SimpleDateFormat("EEE", Locale.getDefault());
+                SimpleDateFormat weekdayNameFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
                 String weekday = weekdayNameFormat.format(date.getTime());
                 SimpleDateFormat format = new SimpleDateFormat(" M/d", Locale.getDefault());
 
@@ -1378,7 +1398,6 @@ public class MainActivity extends AppCompatActivity
                 redlay.setLayoutParams(layoutParams);
                 if (redlay.getTranslationZ() == 0 && valueAnimator.getAnimatedFraction() > 0.2) {
                     redlay.setBackgroundColor(Color.WHITE);
-                    shadow.setVisibility(View.VISIBLE);
                     redlay.setTranslationZ(getResources().getDimensionPixelSize(R.dimen.tendp));
                 }
             }
@@ -1794,7 +1813,6 @@ public class MainActivity extends AppCompatActivity
                                 redlay.setLayoutParams(layoutParams);
                                 if (redlay.getTranslationZ() == 0 && valueAnimator.getAnimatedFraction() > 0.15) {
                                     redlay.setBackgroundColor(Color.WHITE);
-                                    shadow.setVisibility(View.VISIBLE);
                                     redlay.setTranslationZ(getResources().getDimensionPixelSize(R.dimen.tendp));
                                 }
                             }
@@ -1886,5 +1904,70 @@ public class MainActivity extends AppCompatActivity
                 rangetextview = itemView.findViewById(R.id.view_range_textview);
             }
         }
+    }
+
+    private static class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
+        private Context context;
+        private List<EventInfo> eventList;
+
+        public EventAdapter(Context context, List<EventInfo> eventList) {
+            this.context = context;
+            this.eventList = eventList;
+        }
+
+        @NonNull
+        @Override
+        public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(context).inflate(R.layout.item_event, parent, false);
+            return new EventViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
+            EventInfo event = eventList.get(position);
+            Log.d("dataaaa", event.nextnode + "   " + event.endtime + event.eventtitles + event.starttime + event.accountname + "  " + event.timezone + "  " + event.id + " ");
+            holder.bind(event);
+        }
+
+        @Override
+        public int getItemCount() {
+            return eventList.size();
+        }
+
+        public static class EventViewHolder extends RecyclerView.ViewHolder {
+            TextView textViewTitle;
+
+            public EventViewHolder(@NonNull View itemView) {
+                super(itemView);
+                textViewTitle = itemView.findViewById(R.id.event_name);
+            }
+
+            public void bind(EventInfo event) {
+                textViewTitle.setText(event.title);
+            }
+        }
+    }
+    public static void fun(Context context, String cur_date)
+    {
+        LocalDate mintime = new LocalDate().minusYears(5);
+        LocalDate maxtime = new LocalDate().plusYears(5);
+        alleventlist = Utility.readCalendarEvent(context, mintime, maxtime);
+        eventList = new ArrayList<>();
+        // Populate event list from alleventlist
+        HashMap<LocalDate, EventInfo> alleventlist = Utility.readCalendarEvent(context, mintime, maxtime);
+        for (Map.Entry<LocalDate, EventInfo> entry : alleventlist.entrySet()) {
+            EventInfo eventInfo = entry.getValue();
+            Instant instant = Instant.ofEpochMilli(eventInfo.starttime);
+            java.time.LocalDate date = instant.atZone(ZoneId.systemDefault()).toLocalDate();
+            if (date.toString().equals(cur_date)) {
+                Log.d("dataaaa", eventInfo.title+ "  " + MainActivity.lastdate);
+                eventList.add(eventInfo);
+            }
+        }
+
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false));
+        eventAdapter = new EventAdapter(context, eventList);
+        recyclerView.setAdapter(eventAdapter);
     }
 }

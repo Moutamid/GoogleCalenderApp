@@ -1,14 +1,17 @@
 package com.example.GoogleCalendar.weekview;
 
+import static com.example.GoogleCalendar.weekview.WeekViewUtil.isSameDay;
+import static com.example.GoogleCalendar.weekview.WeekViewUtil.today;
+
 import android.animation.ValueAnimator;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Region;
@@ -36,26 +39,24 @@ import android.view.ViewConfiguration;
 import android.widget.OverScroller;
 import android.widget.Toast;
 
-import com.example.GoogleCalendar.MainActivity;
-import com.example.GoogleCalendar.R;
-
-import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.ViewCompat;
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator;
 
-import static com.example.GoogleCalendar.weekview.WeekViewUtil.isSameDay;
-import static com.example.GoogleCalendar.weekview.WeekViewUtil.today;
+import com.example.GoogleCalendar.MainActivity;
+import com.example.GoogleCalendar.R;
+
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 
 public class WeekView extends View {
 
@@ -87,7 +88,7 @@ public class WeekView extends View {
     private Paint mDayBackgroundPaint;
     private Paint mHourSeparatorPaint;
     private float mHeaderMarginBottom;
-    private Paint mTodayBackgroundPaint;
+    //    private Paint mTodayBackgroundPaint;
     private Paint jheaderEventTextpaint;
     private int jheaderEventheight;
     private Paint mFutureBackgroundPaint;
@@ -96,7 +97,7 @@ public class WeekView extends View {
     private Paint mPastWeekendBackgroundPaint;
     private Paint mNowLinePaint;
     private Paint jNowbackPaint;
-    private Paint mTodayHeaderTextPaint;
+    //    private Paint mTodayHeaderTextPaint;
     private Paint mEventBackgroundPaint;
     private float mHeaderColumnWidth;
     private List<EventRect> mEventRects;
@@ -138,11 +139,9 @@ public class WeekView extends View {
     private int mNowLineColor = Color.rgb(102, 102, 102);
     private int mNowLineThickness = 2;
     private int mHourSeparatorColor = Color.rgb(230, 230, 230);
-    private int mTodayBackgroundColor = Color.rgb(19, 65, 105);
+    //    private int mTodayBackgroundColor = Color.rgb(19, 65, 105);
     private int mHourSeparatorHeight = 2;
 
-    //current datecolor
-    private int mTodayHeaderTextColor = Color.rgb(39, 137, 228);
     private int mEventTextSize = 12;
     private int mEventTextColor = Color.BLACK;
     private int mEventPadding = 8;
@@ -150,7 +149,7 @@ public class WeekView extends View {
     private boolean mIsFirstDraw = true;
     private boolean mAreDimensionsInvalid = true;
     @Deprecated
-    private int mDayNameLength = LENGTH_LONG;
+//    private int mDayNameLength = LENGTH_LONG;
     private int mOverlappingEventGap = 0;
     private int mEventMarginVertical = 0;
     private float mXScrollingSpeed = 1f;
@@ -195,12 +194,10 @@ if (mIsZooming)
                     if (Math.abs(distanceX) > Math.abs(distanceY)) {
                         if (distanceX > 0) {
                             Log.d("state", "1");
-                            MainActivity.current_date.setText(dayOfWeek+"  "+ dayOfMonth);
 
                             mCurrentScrollDirection = Direction.LEFT;
                         } else {
                             Log.d("state", "2");
-                            MainActivity.current_date.setText(dayOfWeek+"  "+ dayOfMonth);
 
                             mCurrentScrollDirection = Direction.RIGHT;
                         }
@@ -251,12 +248,6 @@ if (mIsZooming)
 
             if (mIsZooming)
                 return true;
-
-//            if ((mCurrentFlingDirection == Direction.LEFT && !mHorizontalFlingEnabled) ||
-//                    (mCurrentFlingDirection == Direction.RIGHT && !mHorizontalFlingEnabled) ||
-//                    (mCurrentFlingDirection == Direction.VERTICAL && !mVerticalFlingEnabled)) {
-//                return true;
-//            }
 
             mScroller.forceFinished(true);
 
@@ -318,6 +309,7 @@ if (mIsZooming)
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
+            Toast.makeText(mContext, "test", Toast.LENGTH_SHORT).show();
             // If the tap was on an event then trigger the callback.
             if (mEventRects != null && mEventClickListener != null) {
                 List<EventRect> reversedEventRects = mEventRects;
@@ -411,14 +403,13 @@ if (mIsZooming)
             mNowLineColor = a.getColor(R.styleable.WeekView_nowLineColor, mNowLineColor);
             mNowLineThickness = a.getDimensionPixelSize(R.styleable.WeekView_nowLineThickness, mNowLineThickness);
             mHourSeparatorColor = a.getColor(R.styleable.WeekView_hourSeparatorColor, mHourSeparatorColor);
-            mTodayBackgroundColor = a.getColor(R.styleable.WeekView_todayBackgroundColor, mTodayBackgroundColor);
+//            mTodayBackgroundColor = a.getColor(R.styleable.WeekView_todayBackgroundColor, mTodayBackgroundColor);
             mHourSeparatorHeight = a.getDimensionPixelSize(R.styleable.WeekView_hourSeparatorHeight, mHourSeparatorHeight);
-            mTodayHeaderTextColor = a.getColor(R.styleable.WeekView_todayHeaderTextColor, mTodayHeaderTextColor);
             mEventTextSize = a.getDimensionPixelSize(R.styleable.WeekView_eventTextSize, (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, mEventTextSize, context.getResources().getDisplayMetrics()));
             mEventTextColor = a.getColor(R.styleable.WeekView_eventTextColor, mEventTextColor);
             mEventPadding = a.getDimensionPixelSize(R.styleable.WeekView_eventPadding, mEventPadding);
             mHeaderColumnBackgroundColor = a.getColor(R.styleable.WeekView_headerColumnBackground, mHeaderColumnBackgroundColor);
-            mDayNameLength = a.getInteger(R.styleable.WeekView_dayNameLength, mDayNameLength);
+//            mDayNameLength = a.getInteger(R.styleable.WeekView_dayNameLength, mDayNameLength);
             mOverlappingEventGap = a.getDimensionPixelSize(R.styleable.WeekView_overlappingEventGap, mOverlappingEventGap);
             mEventMarginVertical = a.getDimensionPixelSize(R.styleable.WeekView_eventMarginVertical, mEventMarginVertical);
             mXScrollingSpeed = a.getFloat(R.styleable.WeekView_xScrollingSpeed, mXScrollingSpeed);
@@ -437,38 +428,6 @@ if (mIsZooming)
         init();
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    static public Path RoundedRect(float left, float top, float right, float bottom, float rx, float ry, boolean conformToOriginalPost) {
-        Path path = new Path();
-        if (rx < 0) rx = 0;
-        if (ry < 0) ry = 0;
-        float width = right - left;
-        float height = bottom - top;
-        if (rx > width / 2) rx = width / 2;
-        if (ry > height / 2) ry = height / 2;
-        float widthMinusCorners = (width - (2 * rx));
-        float heightMinusCorners = (height - (2 * ry));
-
-        path.moveTo(right, top + ry);
-        path.arcTo(right - 2 * rx, top, right, top + 2 * ry, 0, -90, false); //top-right-corner
-        path.rLineTo(-widthMinusCorners, 0);
-        path.arcTo(left, top, left + 2 * rx, top + 2 * ry, 270, -90, false);//top-left corner.
-        path.rLineTo(0, heightMinusCorners);
-        if (conformToOriginalPost) {
-            path.rLineTo(0, ry);
-            path.rLineTo(width, 0);
-            path.rLineTo(0, -ry);
-        } else {
-            path.arcTo(left, bottom - 2 * ry, left + 2 * rx, bottom, 180, -90, false); //bottom-left corner
-            path.rLineTo(widthMinusCorners, 0);
-            path.arcTo(right - 2 * rx, bottom - 2 * ry, right, bottom, 90, -90, false); //bottom-right corner
-        }
-
-        path.rLineTo(0, -heightMinusCorners);
-
-        path.close();//Given close, last lineto can be removed.
-        return path;
-    }
 
     private void init() {
         // Scrolling initialization.
@@ -479,7 +438,7 @@ if (mIsZooming)
 
         shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         shadowPaint.setStyle(Paint.Style.FILL);
-        shadowPaint.setShadowLayer(12, 0, 0, Color.GRAY);
+//        shadowPaint.setShadowLayer(12, 0, 0, Color.GRAY);
 
         // Important for certain APIs
         setLayerType(LAYER_TYPE_SOFTWARE, shadowPaint);
@@ -499,27 +458,26 @@ if (mIsZooming)
         mHeaderTextPaint.setColor(mHeaderColumnTextColor);
         mHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
         mHeaderTextPaint.setTextSize(mTextSize - 1);
-        mHeaderTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
-        mHeaderTextHeight = rect.height();
+//        mHeaderTextPaint.getTextBounds("00 PM", 0, "00 PM".length(), rect);
+//        mHeaderTextHeight = rect.height();
 
+// Set up the paint object
         jheaderEventTextpaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        jheaderEventTextpaint.setColor(Color.BLUE);
+        jheaderEventTextpaint.setColor(Color.BLACK); // Set text color to black
         jheaderEventTextpaint.setTextAlign(Paint.Align.LEFT);
-        jheaderEventTextpaint.setTextSize(mTextSize);
-//        jheaderEventTextpaint.getTextBounds("a", 0, "a".length(), rect);
-        jheaderEventheight = rect.centerY();
+//        event size
+        jheaderEventTextpaint.setTextSize(19); // Set text size to 16
+
 
         jtodayHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         jtodayHeaderTextPaint.setColor(Color.WHITE);
         jtodayHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
-        jtodayHeaderTextPaint.setTextSize(mTextSize * 1.6f);
+        jtodayHeaderTextPaint.setTextSize(32);
 
         jHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         jHeaderTextPaint.setColor(Color.WHITE);
         jHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
-        jHeaderTextPaint.setTextSize(mTextSize * 1.6f);
-        jHeaderTextPaint.getTextBounds("00", 0, "00".length(), rect);
-        jHeaderTextHeight = rect.height();
+        jHeaderTextPaint.setTextSize(32);
 
         // Prepare header background paint.
         mHeaderBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -553,15 +511,15 @@ if (mIsZooming)
         jNowbackPaint.setColor(mNowLineColor);
 
         // Prepare today background color paint.
-        mTodayBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mTodayBackgroundPaint.setColor(mTodayBackgroundColor);
+//        mTodayBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+//        mTodayBackgroundPaint.setColor(mTodayBackgroundColor);
 
         // Prepare today header text color paint.
-        mTodayHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mTodayHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
-        mTodayHeaderTextPaint.setTextSize(mTextSize);
-        mTodayHeaderTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
-        mTodayHeaderTextPaint.setColor(mTodayHeaderTextColor);
+//        mTodayHeaderTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+//        mTodayHeaderTextPaint.setTextAlign(Paint.Align.CENTER);
+//        mTodayHeaderTextPaint.setTextSize(mTextSize);
+//        mTodayHeaderTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
+//        mTodayHeaderTextPaint.setColor(mTodayHeaderTextColor);
 
         // Prepare event background color.
         mEventBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -575,7 +533,7 @@ if (mIsZooming)
         // Prepare event text size and color.
         mEventTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG);
         mEventTextPaint.setStyle(Paint.Style.FILL);
-        mEventTextPaint.setColor(mEventTextColor);
+        mEventTextPaint.setColor(Color.RED);
         mEventTextPaint.setTextSize(mEventTextSize);
 
         // Set default event color.
@@ -666,23 +624,23 @@ if (mIsZooming)
                 float with = (mAllDayEventHeight * noofevent) + ((noofevent - 1) * 5) + mHeaderMarginBottom;
                 mHeaderHeight = Math.max(without, with);
 
-                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
+//                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
 
             } else {
                 float without = mHeaderTextHeight + jHeaderTextHeight + mHeaderMarginBottom + 70 + mHeaderRowPadding / 3.0f;
 
                 mHeaderHeight = without;
-                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
+//                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
             }
 
 
         } else {
             if (containsAllDayEvent) {
                 mHeaderHeight = mHeaderTextHeight + jHeaderTextHeight + ((mAllDayEventHeight * noofevent) + ((noofevent - 1) * 5) + mHeaderMarginBottom) + 70;
-                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
+//                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
             } else {
                 mHeaderHeight = mHeaderTextHeight + jHeaderTextHeight + mHeaderMarginBottom + 70;
-                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
+//                shadow.setY(mHeaderHeight - 70 + mHeaderRowPadding * 3);
             }
         }
 
@@ -855,37 +813,7 @@ if (mIsZooming)
 
             // Draw background color for each day.
             float start = (startPixel < mHeaderColumnWidth ? mHeaderColumnWidth : startPixel);
-//            if (mWidthPerDay + startPixel - start > 0){
-//                if (mShowDistinctPastFutureColor){
-//                    boolean isWeekend = day.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY || day.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
-//                    Paint pastPaint = isWeekend && mShowDistinctWeekendColor ? mPastWeekendBackgroundPaint : mPastBackgroundPaint;
-//                    Paint futurePaint = isWeekend && mShowDistinctWeekendColor ? mFutureWeekendBackgroundPaint : mFutureBackgroundPaint;
-//                    float startY = mHeaderHeight + mHeaderRowPadding * 3 + mTimeTextHeight/2 + mHeaderMarginBottom + mCurrentOrigin.y;
-//                    startY=stary;
-//                    if (sameDay){
-//                        Calendar now = Calendar.getInstance();
-//                        float beforeNow = (now.get(Calendar.HOUR_OF_DAY) + now.get(Calendar.MINUTE)/60.0f) * mHourHeight;
-//                        canvas.drawRect(start, startY, startPixel + mWidthPerDay, startY+beforeNow, pastPaint);
-//                        canvas.drawRect(start, startY+beforeNow, startPixel + mWidthPerDay, getHeight(), futurePaint);
-//                    }
-//                    else if (day.before(today)) {
-//                        canvas.drawRect(start, startY, startPixel + mWidthPerDay, getHeight(), pastPaint);
-//                    }
-//                    else {
-//                        canvas.drawRect(start, startY, startPixel + mWidthPerDay, getHeight(), futurePaint);
-//                    }
-//
-//                    canvas.drawLine(start,startY,start,getHeight(),mHourSeparatorPaint);
-//                }
-//                else {
-//                    float ca=0 ;
-//                   // canvas.drawRect(start, ca, startPixel + mWidthPerDay, getHeight(), sameDay ? mTodayBackgroundPaint : mDayBackgroundPaint);
-//                    canvas.drawLine(startPixel,ca,startPixel,getHeight(),mHourSeparatorPaint);
-//                    canvas.drawLine(startPixel+mWidthPerDay,ca,startPixel+mWidthPerDay,getHeight(),mHourSeparatorPaint);
-//
-//
-//                }
-//            }
+
 
             canvasclipRect(canvas, 0, stary, getWidth(), getHeight(), Region.Op.REPLACE);
 
@@ -930,13 +858,6 @@ if (mIsZooming)
             // In the next iteration, start from the next day.
             startPixel += mWidthPerDay + mColumnGap;
         }
-
-        // Hide everything in the first cell (top left corner).
-//        canvas.clipRect(0, 0, mTimeTextWidth + mHeaderColumnPadding * 2, mHeaderHeight + mHeaderRowPadding * 3, Region.Op.INTERSECT);
-//        canvas.drawRect(0, 0, mTimeTextWidth + mHeaderColumnPadding * 2, mHeaderHeight + mHeaderRowPadding * 3, mHeaderBackgroundPaint);
-//       float bottom = mHeaderHeight + mHeaderRowPadding * 3;
-        // Clip to paint header row only.
-
 
         if (mNumberOfVisibleDays != 1)
             canvasclipRect(canvas, mHeaderColumnWidth, 0, getWidth(), getHeight(), Region.Op.REPLACE);
@@ -985,44 +906,113 @@ if (mIsZooming)
                 canvas.drawLine(startPixel, mHeaderRowPadding / 3.0f, startPixel, getHeight(), mHourSeparatorPaint);
 
             }
+            float marginLeft = 130; // Adjust the left margin as needed
+            String formattedDate = new SimpleDateFormat("EEEE, d", Locale.getDefault()).format(day.getTime());
+            String nowDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(day.getTime());
+            MainActivity.current_date.setText(formattedDate);
+            MainActivity.calender_date.setText(formattedDate);
+MainActivity.fun(mContext, nowDate);
             if (mNumberOfVisibleDays == 1) {
-                if (sameDay)
-                    canvas.drawRoundRect(xx - size, y - size, xx + size, y + size, size, size, mTodayBackgroundPaint);
+                if (sameDay) {
+//                    canvas.drawRoundRect(xx - size, y - size, xx + size, y + size, size, size, mTodayBackgroundPaint);
+                    // Set the color to 5C79FF if it's the same day
+//                    mTodayHeaderTextPaint.setColor(Color.parseColor("#5C79FF"));
 
-                canvas.drawText(dayLabel, startPixel - mHeaderColumnWidth / 2.0f, mHeaderTextHeight + mHeaderRowPadding / 3.0f, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
-                canvas.drawText(dayLabel1, startPixel - mHeaderColumnWidth / 2.0f, mHeaderTextHeight + mHeaderRowPadding * 1.76f + jHeaderTextHeight, sameDay ? jtodayHeaderTextPaint : jHeaderTextPaint);
+                    jtodayHeaderTextPaint.setColor(Color.parseColor("#5C79FF"));
+                    jtodayHeaderTextPaint.setTextSize(32);
+                    MainActivity.calender_date.setTextColor(Color.parseColor("#5C79FF"));
+                } else {
+                    // Set the color to black if it's not the same day
+//                    mTodayHeaderTextPaint.setColor(Color.BLACK);
+                    jtodayHeaderTextPaint.setColor(Color.BLACK);
+                    jtodayHeaderTextPaint.setTextSize(32);
+                    MainActivity.calender_date.setTextColor(Color.parseColor("#000000"));
+
+                }
+
+                // Format the date as "Wednesday, 27"
+                  // Draw the formatted date with left margin
+//                canvas.drawText(formattedDate, startPixel - mHeaderColumnWidth / 2.0f + marginLeft, mHeaderTextHeight + mHeaderRowPadding / 3.0f, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
+                canvas.drawText(formattedDate, startPixel - mHeaderColumnWidth / 2.0f + marginLeft, mHeaderTextHeight + mHeaderRowPadding * 1.76f + jHeaderTextHeight, sameDay ? jtodayHeaderTextPaint : jHeaderTextPaint);
+
                 drawAllDayEvents(day, startPixel, canvas, dayNumber, false);
-
-
             } else {
-                if (sameDay)
-                    canvas.drawRoundRect(x - size, y - size, x + size, y + size, size, size, mTodayBackgroundPaint);
-                canvas.drawText(dayLabel, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding / 3.0f, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
-                canvas.drawText(dayLabel1, startPixel + mWidthPerDay / 2, mHeaderTextHeight + mHeaderRowPadding * 1.76f + jHeaderTextHeight, sameDay ? jtodayHeaderTextPaint : jHeaderTextPaint);
+                if (sameDay) {
+//                    canvas.drawRoundRect(x - size, y - size, x + size, y + size, size, size, mTodayBackgroundPaint);
+                    // Set the color to 5C79FF if it's the same day
+//                    mTodayHeaderTextPaint.setColor(Color.parseColor("#5C79FF"));
+                    jtodayHeaderTextPaint.setColor(Color.parseColor("#5C79FF"));
+                    jtodayHeaderTextPaint.setTextSize(32);
+                    MainActivity.calender_date.setTextColor(Color.parseColor("#5C79FF"));
+
+                } else {
+                    // Set the color to black if it's not the same day
+//                    mTodayHeaderTextPaint.setColor(Color.BLACK);
+                    jtodayHeaderTextPaint.setColor(Color.BLACK);
+                    jtodayHeaderTextPaint.setTextSize(32);
+                    MainActivity.calender_date.setTextColor(Color.parseColor("#000000"));
+
+                }
+
+                // Format the date as "Wednesday, 27"
+
+                // Draw the formatted date with left margin
+//                canvas.drawText(formattedDate, startPixel + mWidthPerDay / 2 + marginLeft, mHeaderTextHeight + mHeaderRowPadding / 3.0f, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
+                canvas.drawText(formattedDate, startPixel + mWidthPerDay / 2 + marginLeft, mHeaderTextHeight + mHeaderRowPadding * 1.76f + jHeaderTextHeight, sameDay ? jtodayHeaderTextPaint : jHeaderTextPaint);
+
                 drawAllDayEvents(day, startPixel, canvas, dayNumber, false);
             }
 
-            if (mShowNowLine && sameDay) {
-                float startY = mHeaderHeight + mHeaderRowPadding * 3 + mTimeTextHeight / 2 + mHeaderMarginBottom + mCurrentOrigin.y;
-                Calendar now = Calendar.getInstance();
-                float beforeNow = (now.get(Calendar.HOUR_OF_DAY) + now.get(Calendar.MINUTE) / 60.0f) * mHourHeight;
+            if (mShowNowLine && sameDay) { // Ensure it's the same day
 
-                float startat = startPixel < mHeaderColumnWidth ? mHeaderColumnWidth : startPixel;
-                float wid = mWidthPerDay;
-                float per = 20 * (1.0f - (startat - startPixel) / wid);
-                if (mNumberOfVisibleDays != 1) {
-                    if (mNumberOfVisibleDays != 1)
-                        canvasclipRect(canvas, 0, mHeaderHeight + mHeaderRowPadding * 3 - 70, getWidth(), getHeight(), Region.Op.REPLACE);
-                    canvas.drawRoundRect(startat - per, startY + beforeNow - per, startat + per, startY + beforeNow + per, per, per, jNowbackPaint);
-                    canvas.drawLine(startat, startY + beforeNow, startPixel + wid, startY + beforeNow, mNowLinePaint);
-                    canvasclipRect(canvas, mHeaderColumnWidth, 0, getWidth(), getHeight(), Region.Op.REPLACE);
-                } else {
-                    canvasclipRect(canvas, 0, mHeaderHeight + mHeaderRowPadding * 3 - 70, getWidth(), getHeight(), Region.Op.REPLACE);
-                    canvas.drawRoundRect(startPixel - 20, startY + beforeNow - 20, startPixel + 20, startY + beforeNow + 20, 20, 20, jNowbackPaint);
-                    canvas.drawLine(startPixel, startY + beforeNow, startPixel + wid - mHeaderColumnWidth, startY + beforeNow, mNowLinePaint);
-                    canvasclipRect(canvas, 0, 0, getWidth(), getHeight(), Region.Op.REPLACE);
+                Calendar now = Calendar.getInstance();
+                LocalDate currentDate = LocalDate.now(); // Get current date
+
+                // Check if the event date matches the current date
+                if (day.get(Calendar.YEAR) == currentDate.getYear() &&
+                        day.get(Calendar.MONTH) == currentDate.getMonthValue() - 1 && // Month is 0-based in Calendar class
+                        day.get(Calendar.DAY_OF_MONTH) == currentDate.getDayOfMonth()) {
+
+                    float startY = mHeaderHeight + mHeaderRowPadding * 3 + mTimeTextHeight / 2 + mHeaderMarginBottom + mCurrentOrigin.y;
+                    float beforeNow = (now.get(Calendar.HOUR_OF_DAY) + now.get(Calendar.MINUTE) / 60.0f) * mHourHeight;
+
+                    float startat = startPixel < mHeaderColumnWidth ? mHeaderColumnWidth : startPixel;
+                    float wid = mWidthPerDay;
+                    float per = 20 * (1.0f - (startat - startPixel) / wid);
+
+                    // Draw rectangle background
+                    Paint rectanglePaint = new Paint();
+                    rectanglePaint.setColor(Color.parseColor("#3C5C9C")); // Set the background color
+                    rectanglePaint.setStyle(Paint.Style.FILL);
+                    float rectLeft = startat - per - 75; // Adjust width and position more to the left
+                    float rectTop = startY + beforeNow - per - mTimeTextHeight / 2 + 3; // Adjust height and position more to the top
+                    float rectRight = startat + per;
+                    float rectBottom = startY + beforeNow + mTimeTextHeight / 2 + 6; // Adjust rectangle height based on text height
+                    float cornerRadius = 30; // Set corner radius
+                    canvas.drawRoundRect(rectLeft, rectTop, rectRight, rectBottom, cornerRadius, cornerRadius, rectanglePaint);
+
+                    // Set the PorterDuff mode to clear so that the time behind the rectangle is not visible
+                    rectanglePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+
+                    // Draw the current time text
+                    Paint textPaint = new Paint();
+                    textPaint.setColor(Color.WHITE); // Set the text color to white
+                    textPaint.setTextSize(mTimeTextHeight);
+                    textPaint.setTextAlign(Paint.Align.CENTER);
+                    float textX = (rectLeft + rectRight) / 2; // Center text horizontally within the rectangle
+                    float textY = startY + beforeNow + mTimeTextHeight / 4; // Adjust the vertical position of the text
+                    String currentTime = getTimeString(now);
+
+                    canvas.drawText(currentTime, textX, textY, textPaint);
+
+                    // Remove the Xfermode
+                    rectanglePaint.setXfermode(null);
+
+                    // Draw the now line after the time rectangle box
+                    canvas.drawLine(rectRight, startY + beforeNow, startPixel + wid, startY + beforeNow, mNowLinePaint);
                 }
             }
+
             if (mNumberOfVisibleDays == 1)
                 drawTimeColumnAndAxes1day(canvas, startPixel - mHeaderColumnWidth);
 
@@ -1030,32 +1020,9 @@ if (mIsZooming)
 
         }
 
-//        jheaderEventTextpaint.setColor(Color.BLACK);
-//        Calendar jday = (Calendar) today.clone();
-//        int df = (int) (mCurrentOrigin.x/mWidthPerDay);
-//        jday.add(Calendar.DATE, -df);
-//        String tit="test";
-//        if (mEventRects != null && mEventRects.size() > 0) {
-//
-//            Log.e("size",mEventRects.size()+"");
-//            for (int i = 0; i < mEventRects.size(); i++) {
-//                if (isSameDay(mEventRects.get(i).event.getStartTime(), jday) && mEventRects.get(i).event.isAllDay()&&mEventRects.get(i).event.isIsmoreday()) {
-//                    tit=mEventRects.get(i).event.getName();
-//                    canvas.drawText(tit, mHeaderColumnWidth, mEventRects.get(i).rectF.centerY() - jheaderEventheight, jheaderEventTextpaint);
-//                }
-//            }
-//        }
-
-
     }
 
-    /**
-     * Get the time and date where the user clicked on.
-     *
-     * @param x The x position of the touch event.
-     * @param y The y position of the touch event.
-     * @return The time and date at the clicked position.
-     */
+
     private Calendar getTimeFromPoint(float x, float y) {
         int leftDaysWithGaps = (int) -(Math.ceil(mCurrentOrigin.x / (mWidthPerDay + mColumnGap)));
         float startPixel = mCurrentOrigin.x + (mWidthPerDay + mColumnGap) * leftDaysWithGaps +
@@ -1080,13 +1047,6 @@ if (mIsZooming)
         return null;
     }
 
-    /**
-     * Draw all the events of a particular day.
-     *
-     * @param date           The day.
-     * @param startFromPixel The left position of the day area. The events will never go any left from this value.
-     * @param canvas         The canvas to draw upon.
-     */
     private void drawEvents(Calendar date, float startFromPixel, Canvas canvas) {
         if (mEventRects != null && mEventRects.size() > 0) {
             for (int i = 0; i < mEventRects.size(); i++) {
@@ -1125,115 +1085,76 @@ if (mIsZooming)
         }
     }
 
-    /**
-     * Draw all the Allday-events of a particular day.
-     *
-     * @param date           The day.
-     * @param startFromPixel The left position of the day area. The events will never go any left from this value.
-     * @param canvas         The canvas to draw upon.
-     */
     private void drawAllDayEvents(Calendar date, float startFromPixel, Canvas canvas, int daynumber, boolean check) {
-
         if (mEventRects != null && mEventRects.size() > 0) {
-
-
             for (int i = 0; i < mEventRects.size(); i++) {
-
                 SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
-
 
                 if (isSameDay(mEventRects.get(i).event.getStartTime(), date) && mEventRects.get(i).event.isAllDay()) {
                     // Calculate top.
                     float top = 0;
                     // Calculate bottom.
                     if (mNumberOfVisibleDays == 1) {
-
                         top = mHeaderRowPadding / 3.0f + mEventMarginVertical + mEventRects.get(i).top;
                     } else {
                         top = (3 * mHeaderRowPadding) + mHeaderTextHeight + jHeaderTextHeight + mEventMarginVertical + mEventRects.get(i).top;
-
                     }
                     float bottom = top + mEventRects.get(i).bottom;
 
                     // Calculate left and right.
-
                     float left = startFromPixel;
-
 
                     if (left < startFromPixel)
                         left += mOverlappingEventGap;
-
 
                     float right = left + (mWidthPerDay - (mNumberOfVisibleDays == 1 ? mHeaderColumnWidth : 0)) - 10;
                     if (right < startFromPixel + (mWidthPerDay - (mNumberOfVisibleDays == 1 ? mHeaderColumnWidth : 0)))
                         right -= mOverlappingEventGap;
 
                     // Draw the event and the event name on top of it.
-
-                    if (left < right &&
-                            left < getWidth() &&
-                            top < getHeight() &&
-                            right > mHeaderColumnWidth &&
-                            bottom > 0
-                    ) {
+                    if (left < right && left < getWidth() && top < getHeight() && right > mHeaderColumnWidth && bottom > 0) {
                         mEventRects.get(i).rectF = new RectF(left, top, right, bottom);
-
 
                         boolean mycheck = getNumberOfVisibleDays() != 1 && mEventRects.get(i).event.isIsmoreday();
                         mEventBackgroundPaint.setColor(mEventRects.get(i).event.getColor() == 0 ? mDefaultEventColor : mEventRects.get(i).event.getColor());
 
                         if (mycheck) {
-
                             if (true) {
-
                                 float startat = startFromPixel < mHeaderColumnWidth ? mHeaderColumnWidth : startFromPixel;
                                 float wid = mWidthPerDay;
                                 mEventRects.get(i).rectF.left = startat;
                                 if (mEventRects.get(i).event.getDaytype() != 1 && startat > 200) {
                                     mEventRects.get(i).rectF.left = startat - mEventCornerRadius * 2;
-
                                 }
                                 mEventRects.get(i).rectF.right = startFromPixel + (wid);
                                 RectF fd = mEventRects.get(i).rectF;
                                 if (mEventRects.get(i).event.getDaytype() == mEventRects.get(i).event.getNoofday()) {
                                     fd.right = fd.right - 10;
                                 }
+                                // Draw the event background with white color
+                                mEventBackgroundPaint.setColor(Color.WHITE);
                                 canvas.drawRoundRect(fd, mEventCornerRadius, mEventCornerRadius, mEventBackgroundPaint);
 
                                 if (startFromPixel < mHeaderColumnWidth + 5 || mEventRects.get(i).event.getDaytype() == 1) {
-
-
+                                    // Draw the event text with black color
                                     canvas.drawText(mEventRects.get(i).event.getName(), startat, mEventRects.get(i).rectF.centerY() - jheaderEventheight, jheaderEventTextpaint);
-
                                 }
-
-
                             }
-
-
                         } else {
-
+                            // Draw the event background with white color
+                            mEventBackgroundPaint.setColor(Color.WHITE);
                             canvas.drawRoundRect(mEventRects.get(i).rectF, mEventCornerRadius, mEventCornerRadius, mEventBackgroundPaint);
-                            canvas.drawText(mEventRects.get(i).event.getName(), mEventRects.get(i).rectF.left + 12, mEventRects.get(i).rectF.centerY() - jheaderEventheight, jheaderEventTextpaint);
 
+                            // Draw the event text with black color
+                            canvas.drawText(mEventRects.get(i).event.getName(), mEventRects.get(i).rectF.left + 12, mEventRects.get(i).rectF.centerY() - jheaderEventheight, jheaderEventTextpaint);
                         }
-                    } else
+                    } else {
                         mEventRects.get(i).rectF = null;
+                    }
                 }
             }
         }
-
     }
-
-    /**
-     * Draw the name of the event on top of the event rectangle.
-     *
-     * @param event        The event of which the title (and location) should be drawn.
-     * @param rect         The rectangle on which the text is to be drawn.
-     * @param canvas       The canvas to draw upon.
-     * @param originalTop  The original top position of the rectangle. The rectangle may have some of its portion outside of the visible area.
-     * @param originalLeft The original left position of the rectangle. The rectangle may have some of its portion outside of the visible area.
-     */
     private void drawEventTitle(WeekViewEvent event, RectF rect, Canvas canvas, float originalTop, float originalLeft) {
         if (rect.right - rect.left - mEventPadding * 2 < 0) return;
         if (rect.bottom - rect.top - mEventPadding * 2 < 0) return;
@@ -1665,7 +1586,9 @@ if (mIsZooming)
                     try {
                         int flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NO_YEAR | DateUtils.FORMAT_NUMERIC_DATE;
                         String localizedDate = DateUtils.formatDateTime(getContext(), date.getTime().getTime(), flags);
-                        SimpleDateFormat sdf = mDayNameLength == LENGTH_SHORT ? new SimpleDateFormat("EEEEE", Locale.getDefault()) : new SimpleDateFormat("EEE", Locale.getDefault());
+                        SimpleDateFormat sdf = new SimpleDateFormat("EEEE", Locale.getDefault());
+
+//                        SimpleDateFormat sdf = mDayNameLength == LENGTH_SHORT ? new SimpleDateFormat("EEEEE", Locale.getDefault()) : new SimpleDateFormat("EEE", Locale.getDefault());
                         return String.format("%s %s", sdf.format(date.getTime()).toUpperCase(), localizedDate);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -1787,7 +1710,7 @@ if (mIsZooming)
 
     public void setTextSize(int textSize) {
         mTextSize = textSize;
-        mTodayHeaderTextPaint.setTextSize(mTextSize);
+//        mTodayHeaderTextPaint.setTextSize(mTextSize);
         mHeaderTextPaint.setTextSize(mTextSize);
         mTimeTextPaint.setTextSize(mTextSize);
         invalidate();
@@ -1852,15 +1775,15 @@ if (mIsZooming)
         invalidate();
     }
 
-    public int getTodayBackgroundColor() {
-        return mTodayBackgroundColor;
-    }
-
-    public void setTodayBackgroundColor(int todayBackgroundColor) {
-        mTodayBackgroundColor = todayBackgroundColor;
-        mTodayBackgroundPaint.setColor(mTodayBackgroundColor);
-        invalidate();
-    }
+//    public int getTodayBackgroundColor() {
+//        return mTodayBackgroundColor;
+//    }
+//
+//    public void setTodayBackgroundColor(int todayBackgroundColor) {
+//        mTodayBackgroundColor = todayBackgroundColor;
+//        mTodayBackgroundPaint.setColor(mTodayBackgroundColor);
+//        invalidate();
+//    }
 
     public int getHourSeparatorHeight() {
         return mHourSeparatorHeight;
@@ -1872,15 +1795,15 @@ if (mIsZooming)
         invalidate();
     }
 
-    public int getTodayHeaderTextColor() {
-        return mTodayHeaderTextColor;
-    }
-
-    public void setTodayHeaderTextColor(int todayHeaderTextColor) {
-        mTodayHeaderTextColor = todayHeaderTextColor;
-        mTodayHeaderTextPaint.setColor(mTodayHeaderTextColor);
-        invalidate();
-    }
+//    public int getTodayHeaderTextColor() {
+//        return mTodayHeaderTextColor;
+//    }
+//
+//    public void setTodayHeaderTextColor(int todayHeaderTextColor) {
+//        mTodayHeaderTextColor = todayHeaderTextColor;
+//        mTodayHeaderTextPaint.setColor(mTodayHeaderTextColor);
+//        invalidate();
+//    }
 
     public int getEventTextSize() {
         return mEventTextSize;
@@ -1921,41 +1844,6 @@ if (mIsZooming)
         invalidate();
     }
 
-    public int getDefaultEventColor() {
-        return mDefaultEventColor;
-    }
-
-    public void setDefaultEventColor(int defaultEventColor) {
-        mDefaultEventColor = defaultEventColor;
-        invalidate();
-    }
-
-    /**
-     * <b>Note:</b> Use {@link #setDateTimeInterpreter(DateTimeInterpreter)} and
-     * {@link #getDateTimeInterpreter()} instead.
-     *
-     * @return Either long or short day name is being used.
-     */
-    @Deprecated
-    public int getDayNameLength() {
-        return mDayNameLength;
-    }
-
-    /**
-     * Set the length of the day name displayed in the header row. Example of short day names is
-     * 'M' for 'Monday' and example of long day names is 'Mon' for 'Monday'.
-     * <p>
-     * <b>Note:</b> Use {@link #setDateTimeInterpreter(DateTimeInterpreter)} instead.
-     * </p>
-     */
-    @Deprecated
-    public void setDayNameLength(int length) {
-        if (length != LENGTH_LONG && length != LENGTH_SHORT) {
-            throw new IllegalArgumentException("length parameter must be either LENGTH_LONG or LENGTH_SHORT");
-        }
-        this.mDayNameLength = length;
-    }
-
     public int getOverlappingEventGap() {
         return mOverlappingEventGap;
     }
@@ -1963,249 +1851,13 @@ if (mIsZooming)
     /**
      * Set the gap between overlapping events.
      *
-     * @param overlappingEventGap The gap between overlapping events.
-     */
-    public void setOverlappingEventGap(int overlappingEventGap) {
-        this.mOverlappingEventGap = overlappingEventGap;
-        invalidate();
-    }
-
-    public int getEventCornerRadius() {
-        return mEventCornerRadius;
-    }
-
-    /**
-     * Set corner radius for event rect.
-     *
-     * @param eventCornerRadius the radius in px.
-     */
-    public void setEventCornerRadius(int eventCornerRadius) {
-        mEventCornerRadius = eventCornerRadius;
-    }
-
-    public int getEventMarginVertical() {
-        return mEventMarginVertical;
-    }
-
-    /**
-     * Set the top and bottom margin of the event. The event will release this margin from the top
-     * and bottom edge. This margin is useful for differentiation consecutive events.
-     *
-     * @param eventMarginVertical The top and bottom margin.
-     */
-    public void setEventMarginVertical(int eventMarginVertical) {
-        this.mEventMarginVertical = eventMarginVertical;
-        invalidate();
-    }
-
-    /**
-     * Returns the first visible day in the week view.
-     *
-     * @return The first visible day in the week view.
      */
     public Calendar getFirstVisibleDay() {
         return mFirstVisibleDay;
     }
 
-    /**
-     * Returns the last visible day in the week view.
-     *
-     * @return The last visible day in the week view.
-     */
-    public Calendar getLastVisibleDay() {
-        return mLastVisibleDay;
-    }
-
-    /**
-     * Get the scrolling speed factor in horizontal direction.
-     *
-     * @return The speed factor in horizontal direction.
-     */
-    public float getXScrollingSpeed() {
-        return mXScrollingSpeed;
-    }
-
-    /**
-     * Sets the speed for horizontal scrolling.
-     *
-     * @param xScrollingSpeed The new horizontal scrolling speed.
-     */
-    public void setXScrollingSpeed(float xScrollingSpeed) {
-        this.mXScrollingSpeed = xScrollingSpeed;
-    }
-
-    /**
-     * Whether weekends should have a background color different from the normal day background
-     * color. The weekend background colors are defined by the attributes
-     * `futureWeekendBackgroundColor` and `pastWeekendBackgroundColor`.
-     *
-     * @return True if weekends should have different background colors.
-     */
-    public boolean isShowDistinctWeekendColor() {
-        return mShowDistinctWeekendColor;
-    }
-
-    /**
-     * Set whether weekends should have a background color different from the normal day background
-     * color. The weekend background colors are defined by the attributes
-     * `futureWeekendBackgroundColor` and `pastWeekendBackgroundColor`.
-     *
-     * @param showDistinctWeekendColor True if weekends should have different background colors.
-     */
-    public void setShowDistinctWeekendColor(boolean showDistinctWeekendColor) {
-        this.mShowDistinctWeekendColor = showDistinctWeekendColor;
-        invalidate();
-    }
-
-    /**
-     * Whether past and future days should have two different background colors. The past and
-     * future day colors are defined by the attributes `futureBackgroundColor` and
-     * `pastBackgroundColor`.
-     *
-     * @return True if past and future days should have two different background colors.
-     */
-    public boolean isShowDistinctPastFutureColor() {
-        return mShowDistinctPastFutureColor;
-    }
-
-    /**
-     * Set whether weekends should have a background color different from the normal day background
-     * color. The past and future day colors are defined by the attributes `futureBackgroundColor`
-     * and `pastBackgroundColor`.
-     *
-     * @param showDistinctPastFutureColor True if past and future should have two different
-     *                                    background colors.
-     */
-    public void setShowDistinctPastFutureColor(boolean showDistinctPastFutureColor) {
-        this.mShowDistinctPastFutureColor = showDistinctPastFutureColor;
-        invalidate();
-    }
-
-    /**
-     * Get whether "now" line should be displayed. "Now" line is defined by the attributes
-     * `nowLineColor` and `nowLineThickness`.
-     *
-     * @return True if "now" line should be displayed.
-     */
-    public boolean isShowNowLine() {
-        return mShowNowLine;
-    }
-
-    /**
-     * Set whether "now" line should be displayed. "Now" line is defined by the attributes
-     * `nowLineColor` and `nowLineThickness`.
-     *
-     * @param showNowLine True if "now" line should be displayed.
-     */
-    public void setShowNowLine(boolean showNowLine) {
-        this.mShowNowLine = showNowLine;
-        invalidate();
-    }
-
-    /**
-     * Get the "now" line color.
-     *
-     * @return The color of the "now" line.
-     */
-    public int getNowLineColor() {
-        return mNowLineColor;
-    }
-
-    /**
-     * Set the "now" line color.
-     *
-     * @param nowLineColor The color of the "now" line.
-     */
-    public void setNowLineColor(int nowLineColor) {
-        this.mNowLineColor = nowLineColor;
-        invalidate();
-    }
-
-    /**
-     * Get the "now" line thickness.
-     *
-     * @return The thickness of the "now" line.
-     */
-    public int getNowLineThickness() {
-        return mNowLineThickness;
-    }
-
-    /**
-     * Set the "now" line thickness.
-     *
-     * @param nowLineThickness The thickness of the "now" line.
-     */
-    public void setNowLineThickness(int nowLineThickness) {
-        this.mNowLineThickness = nowLineThickness;
-        invalidate();
-    }
-
-    /**
-     * Get whether the week view should fling horizontally.
-     *
-     * @return True if the week view has horizontal fling enabled.
-     */
-    public boolean isHorizontalFlingEnabled() {
-        return mHorizontalFlingEnabled;
-    }
-
-    /**
-     * Set whether the week view should fling horizontally.
-     *
-     * @return True if it should have horizontal fling enabled.
-     */
-    public void setHorizontalFlingEnabled(boolean enabled) {
-        mHorizontalFlingEnabled = enabled;
-    }
-
-    /**
-     * Get whether the week view should fling vertically.
-     *
-     * @return True if the week view has vertical fling enabled.
-     */
-    public boolean isVerticalFlingEnabled() {
-        return mVerticalFlingEnabled;
-    }
-
-    /**
-     * Set whether the week view should fling vertically.
-     *
-     * @return True if it should have vertical fling enabled.
-     */
-    public void setVerticalFlingEnabled(boolean enabled) {
-        mVerticalFlingEnabled = enabled;
-    }
-
-    /**
-     * Get the height of AllDay-events.
-     *
-     * @return Height of AllDay-events.
-     */
-    public int getAllDayEventHeight() {
-        return mAllDayEventHeight;
-    }
-
-    /**
-     * Set the height of AllDay-events.
-     */
     public void setAllDayEventHeight(int height) {
         mAllDayEventHeight = height;
-    }
-
-    /**
-     * Get scroll duration
-     *
-     * @return scroll duration
-     */
-    public int getScrollDuration() {
-        return mScrollDuration;
-    }
-
-    /**
-     * Set the scroll duration
-     */
-    public void setScrollDuration(int scrollDuration) {
-        mScrollDuration = scrollDuration;
     }
 
     @Override
@@ -2271,16 +1923,7 @@ if (mIsZooming)
                         }, 100);
 
                     }
-
-//                    float small=Math.min(Math.abs(next-mCurrentOrigin.x),Math.abs(previous-mCurrentOrigin.x));
-//                    int j=1;
-//                    if (mCurrentOrigin.x<0)j=-1;
-//                    mCurrentOrigin.x=(small-mCurrentOrigin.x)*j;
-//                    invalidate();
-
-
                 }
-                //goToNearestOrigin();
             }
             mCurrentScrollDirection = Direction.NONE;
         }
@@ -2562,5 +2205,10 @@ if (mIsZooming)
             this.rectF = rectF;
             this.originalEvent = originalEvent;
         }
+    }
+
+    private String getTimeString(Calendar calendar) {
+        SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a"); // Define the desired format, e.g., "03:27 PM"
+        return sdf.format(calendar.getTime());
     }
 }

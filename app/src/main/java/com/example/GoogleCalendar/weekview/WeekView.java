@@ -47,6 +47,8 @@ import androidx.interpolator.view.animation.FastOutLinearInInterpolator;
 
 import com.example.GoogleCalendar.MainActivity;
 import com.example.GoogleCalendar.R;
+import com.example.GoogleCalendar.database.Event;
+import com.example.GoogleCalendar.database.EventDbHelper;
 
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
@@ -185,7 +187,7 @@ public class WeekView extends View {
             int dayOfMonth = MainActivity.lastdate.getDayOfMonth();
 
             // Check if view is zoomed.
-if (mIsZooming)
+            if (mIsZooming)
                 return true;
             switch (mCurrentScrollDirection) {
                 case NONE: {
@@ -309,8 +311,9 @@ if (mIsZooming)
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            Toast.makeText(mContext, "test", Toast.LENGTH_SHORT).show();
             // If the tap was on an event then trigger the callback.
+
+
             if (mEventRects != null && mEventClickListener != null) {
                 List<EventRect> reversedEventRects = mEventRects;
                 // Collections.reverse(reversedEventRects);
@@ -788,6 +791,7 @@ if (mIsZooming)
         mFirstVisibleDay = (Calendar) today.clone();
         mFirstVisibleDay.add(Calendar.DATE, -(Math.round(mCurrentOrigin.x / (mWidthPerDay + mColumnGap))));
         if (!mFirstVisibleDay.equals(oldFirstVisibleDay) && mScrollListener != null) {
+            Toast.makeText(mContext, "done", Toast.LENGTH_SHORT).show();
             mScrollListener.onFirstVisibleDayChanged(mFirstVisibleDay, oldFirstVisibleDay);
         }
         for (int dayNumber = leftDaysWithGaps + 1;
@@ -909,9 +913,11 @@ if (mIsZooming)
             float marginLeft = 130; // Adjust the left margin as needed
             String formattedDate = new SimpleDateFormat("EEEE, d", Locale.getDefault()).format(day.getTime());
             String nowDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(day.getTime());
+            String title_date = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(day.getTime());
             MainActivity.current_date.setText(formattedDate);
             MainActivity.calender_date.setText(formattedDate);
-MainActivity.fun(mContext, nowDate);
+            MainActivity.title.setText(title_date);
+            MainActivity.fun(mContext, nowDate);
             if (mNumberOfVisibleDays == 1) {
                 if (sameDay) {
 //                    canvas.drawRoundRect(xx - size, y - size, xx + size, y + size, size, size, mTodayBackgroundPaint);
@@ -931,10 +937,29 @@ MainActivity.fun(mContext, nowDate);
                 }
 
                 // Format the date as "Wednesday, 27"
-                  // Draw the formatted date with left margin
+                // Draw the formatted date with left margin
 //                canvas.drawText(formattedDate, startPixel - mHeaderColumnWidth / 2.0f + marginLeft, mHeaderTextHeight + mHeaderRowPadding / 3.0f, sameDay ? mTodayHeaderTextPaint : mHeaderTextPaint);
                 canvas.drawText(formattedDate, startPixel - mHeaderColumnWidth / 2.0f + marginLeft, mHeaderTextHeight + mHeaderRowPadding * 1.76f + jHeaderTextHeight, sameDay ? jtodayHeaderTextPaint : jHeaderTextPaint);
+                String date_ = "2024-03-28"; // Example date
+                EventDbHelper eventDbHelper = new EventDbHelper(mContext);
+                List<Event> events = eventDbHelper.getEventsByDate(date_);
+                for (Event event : events) {
+                    // You can use event data as needed, for example:
+                    long id = event.getId();
+                    String title = event.getTitle();
+                    String time = event.getTime();
+                    String description = event.getDescription();
+                    boolean checked = event.isChecked();
+                    Log.d("tesdffdfdft", time+"   ");
 
+                    String[] times = time.split("-");
+                    if (times.length == 2) {
+                        String startTime = times[0]; // "04"
+                        String endTime = times[1];   // "19"
+                        Log.d("tesdffdfdft", startTime+"  -- "+ endTime);
+                        draw_event(startPixel, canvas, Integer.valueOf(startTime), Integer.valueOf(endTime), title);
+                    }
+                }
                 drawAllDayEvents(day, startPixel, canvas, dayNumber, false);
             } else {
                 if (sameDay) {
@@ -951,7 +976,6 @@ MainActivity.fun(mContext, nowDate);
                     jtodayHeaderTextPaint.setColor(Color.BLACK);
                     jtodayHeaderTextPaint.setTextSize(32);
                     MainActivity.calender_date.setTextColor(Color.parseColor("#000000"));
-
                 }
 
                 // Format the date as "Wednesday, 27"
@@ -963,14 +987,12 @@ MainActivity.fun(mContext, nowDate);
                 drawAllDayEvents(day, startPixel, canvas, dayNumber, false);
             }
 
-            if (mShowNowLine && sameDay) { // Ensure it's the same day
 
+            if (mShowNowLine && sameDay) {
                 Calendar now = Calendar.getInstance();
-                LocalDate currentDate = LocalDate.now(); // Get current date
-
-                // Check if the event date matches the current date
+                LocalDate currentDate = LocalDate.now();
                 if (day.get(Calendar.YEAR) == currentDate.getYear() &&
-                        day.get(Calendar.MONTH) == currentDate.getMonthValue() - 1 && // Month is 0-based in Calendar class
+                        day.get(Calendar.MONTH) == currentDate.getMonthValue() - 1 &&
                         day.get(Calendar.DAY_OF_MONTH) == currentDate.getDayOfMonth()) {
 
                     float startY = mHeaderHeight + mHeaderRowPadding * 3 + mTimeTextHeight / 2 + mHeaderMarginBottom + mCurrentOrigin.y;
@@ -1010,6 +1032,8 @@ MainActivity.fun(mContext, nowDate);
 
                     // Draw the now line after the time rectangle box
                     canvas.drawLine(rectRight, startY + beforeNow, startPixel + wid, startY + beforeNow, mNowLinePaint);
+
+
                 }
             }
 
@@ -1155,6 +1179,7 @@ MainActivity.fun(mContext, nowDate);
             }
         }
     }
+
     private void drawEventTitle(WeekViewEvent event, RectF rect, Canvas canvas, float originalTop, float originalLeft) {
         if (rect.right - rect.left - mEventPadding * 2 < 0) return;
         if (rect.bottom - rect.top - mEventPadding * 2 < 0) return;
@@ -1850,7 +1875,6 @@ MainActivity.fun(mContext, nowDate);
 
     /**
      * Set the gap between overlapping events.
-     *
      */
     public Calendar getFirstVisibleDay() {
         return mFirstVisibleDay;
@@ -2176,7 +2200,7 @@ MainActivity.fun(mContext, nowDate);
     }
 
     public interface EmptyViewClickListener {
-             void onEmptyViewClicked(Calendar time);
+        void onEmptyViewClicked(Calendar time);
     }
 
     public interface EmptyViewLongPressListener {
@@ -2210,5 +2234,36 @@ MainActivity.fun(mContext, nowDate);
     private String getTimeString(Calendar calendar) {
         SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a"); // Define the desired format, e.g., "03:27 PM"
         return sdf.format(calendar.getTime());
+    }
+
+    public void draw_event(float startPixel, Canvas canvas, int hour, int minute, String title) {
+        float startY = mHeaderHeight + mHeaderRowPadding * 3 + mTimeTextHeight / 2 + mHeaderMarginBottom + mCurrentOrigin.y;
+        float beforeNow = (hour + minute / 60.0f) * mHourHeight;
+        float startat = startPixel < mHeaderColumnWidth ? mHeaderColumnWidth : startPixel;
+        float canvasWidth = canvas.getWidth(); // Get the width of the canvas
+        float per = 1 * (1.0f - (startat - startPixel) / canvasWidth); // Adjust the width based on the canvas width
+        Paint rectanglePaint = new Paint();
+        rectanglePaint.setColor(Color.parseColor("#3C5C9C")); // Set the background color
+        rectanglePaint.setStyle(Paint.Style.FILL);
+
+        float rectLeft = startat - per - 5; // Adjust width and position more to the left
+        float rectTop = startY + beforeNow - per - 25; // Adjust height and position more to the top (subtract 20dp)
+        float rectRight = canvasWidth; // Set the right edge of the rectangle to the width of the canvas
+        float rectBottom = startY + beforeNow + 25; // Adjust rectangle height to approximately 40dp (add 20dp)
+        float cornerRadius = 1; // Set corner radius
+
+        canvas.drawRoundRect(rectLeft, rectTop, rectRight, rectBottom, cornerRadius, cornerRadius, rectanglePaint);
+
+        // Clear the area behind the rectangle
+        rectanglePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+
+        Paint textPaint = new Paint();
+        textPaint.setColor(Color.WHITE); // Set the text color to white
+        textPaint.setTextSize(22);
+        textPaint.setTextAlign(Paint.Align.LEFT);
+        float textX = rectLeft + 20; // Set textX to rectLeft plus some padding (e.g., 10dp)
+        float textY = startY + beforeNow + mTimeTextHeight / 4; // Adjust the vertical position of the text
+
+        canvas.drawText(title, textX, textY, textPaint);
     }
 }
